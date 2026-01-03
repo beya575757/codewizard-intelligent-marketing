@@ -1,0 +1,43 @@
+# Credentials - MAI COMMITTARE
+config/credentials.json
+*.env
+.env.*
+
+# MongoDB data
+mongodb_data/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Node
+node_modules/
+npm-debug.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Output data
+output/
+exports/
+*.csv
+*.xlsx
+
+# Temp
+tmp/
+temp/
