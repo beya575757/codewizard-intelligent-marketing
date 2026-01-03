@@ -39,16 +39,6 @@ https://hn.algolia.com/api/v1
 https://hn.algolia.com/api/v1/search?query=devops+pain+point&tags=story
 ```
 
-**Problemi Kubernetes recenti:**
-```
-https://hn.algolia.com/api/v1/search_by_date?query=kubernetes+problem&tags=story
-```
-
-**Discussioni con molti commenti:**
-```
-https://hn.algolia.com/api/v1/search?query=frustrating&tags=story&numericFilters=num_comments>100
-```
-
 ### PowerShell
 ```powershell
 $response = Invoke-RestMethod -Uri "https://hn.algolia.com/api/v1/search?query=devops+pain&tags=story"
@@ -98,8 +88,6 @@ Invoke-RestMethod -Uri "https://api.ted.europa.eu/v3/notices/search" `
 | TI | Titolo | `TI=software` |
 | PC | Codice CPV | `PC=72000000` (IT services) |
 | ND | Notice ID | `ND=*` (tutti) |
-| AA | Tipo autorità | Ente appaltante |
-| TD | Tipo documento | Tipo bando |
 
 ### Codici CPV per IT
 
@@ -109,45 +97,37 @@ Invoke-RestMethod -Uri "https://api.ted.europa.eu/v3/notices/search" `
 | 48000000 | Software e sistemi informatici |
 | 72200000 | Consulenza software e programmazione |
 | 72300000 | Servizi elaborazione dati |
-| 72400000 | Servizi Internet |
-| 72500000 | Servizi informatici |
-| 72600000 | Assistenza e supporto informatico |
 
 ### Operatori Query
-
-| Operatore | Descrizione | Esempio |
-|-----------|-------------|---------|
-| AND | Entrambe condizioni | `CY=ITA AND TI=software` |
-| OR | Una delle due | `TI=cloud OR TI=kubernetes` |
-| = | Uguale | `CY=ITA` |
-| >= | Maggiore o uguale | `PD>=20240101` |
-| () | Raggruppamento | `(PC=72000000 OR PC=48000000)` |
+- `AND` - Entrambe condizioni
+- `OR` - Una delle due
+- `=` - Uguale
+- `>=` - Maggiore o uguale
+- `()` - Raggruppamento
 
 ### Esempi Pratici
 
-**1. Bandi Italia 2024:**
+**Bandi Italia 2024:**
 ```powershell
 $body = @{
     query = "CY=ITA AND PD>=20240101"
     fields = @("ND", "TI", "PD")
     limit = 20
 } | ConvertTo-Json
-
 Invoke-RestMethod -Uri "https://api.ted.europa.eu/v3/notices/search" -Method POST -ContentType "application/json" -Body $body
 ```
 
-**2. Bandi IT Services Italia:**
+**Bandi IT Services Italia:**
 ```powershell
 $body = @{
     query = "CY=ITA AND PC=72000000"
     fields = @("ND", "TI", "PD", "PC", "CY")
     limit = 50
 } | ConvertTo-Json
-
 Invoke-RestMethod -Uri "https://api.ted.europa.eu/v3/notices/search" -Method POST -ContentType "application/json" -Body $body
 ```
 
-**3. Bandi software ultimi 30 giorni:**
+**Bandi software ultimi 30 giorni:**
 ```powershell
 $data = (Get-Date).AddDays(-30).ToString("yyyyMMdd")
 $body = @{
@@ -155,34 +135,20 @@ $body = @{
     fields = @("ND", "TI", "PD", "PC")
     limit = 100
 } | ConvertTo-Json
-
 Invoke-RestMethod -Uri "https://api.ted.europa.eu/v3/notices/search" -Method POST -ContentType "application/json" -Body $body
 ```
 
-**4. Combinazione complessa (IT + Software):**
+**Combinazione complessa (IT + Software):**
 ```powershell
 $body = @{
     query = "CY=ITA AND (PC=72000000 OR PC=48000000) AND PD>=20240101"
     fields = @("ND", "TI", "PD", "PC", "AA", "CY")
     limit = 250
 } | ConvertTo-Json
-
 Invoke-RestMethod -Uri "https://api.ted.europa.eu/v3/notices/search" -Method POST -ContentType "application/json" -Body $body
 ```
 
-**5. Bandi cloud/DevOps/Kubernetes:**
-```powershell
-$body = @{
-    query = "CY=ITA AND (TI=cloud OR TI=kubernetes OR TI=devops OR TI=microservizi) AND PD>=20240101"
-    fields = @("ND", "TI", "PD", "PC", "AA", "CY")
-    limit = 100
-} | ConvertTo-Json
-
-$results = Invoke-RestMethod -Uri "https://api.ted.europa.eu/v3/notices/search" -Method POST -ContentType "application/json" -Body $body
-Write-Host "Totale bandi trovati: $($results.totalNoticeCount)" -ForegroundColor Green
-```
-
-### Struttura Response
+### Response Structure
 ```json
 {
   "notices": [
@@ -192,9 +158,7 @@ Write-Host "Totale bandi trovati: $($results.totalNoticeCount)" -ForegroundColor
       "PD": "2024-01-15Z",
       "PC": ["72000000"],
       "CY": ["ITA"],
-      "links": {
-        "html": { "ITA": "https://ted.europa.eu/it/notice/-/detail/12345-2024" }
-      }
+      "links": { "html": { "ITA": "https://ted.europa.eu/it/notice/-/detail/12345-2024" } }
     }
   ],
   "totalNoticeCount": 1500
@@ -213,18 +177,11 @@ $export = $results.notices | ForEach-Object {
     }
 }
 $export | Export-Csv -Path "ted_bandi_italia.csv" -NoTypeInformation -Encoding UTF8
-Write-Host "Salvato in ted_bandi_italia.csv" -ForegroundColor Green
 ```
 
 ### Rate Limits
-- 15,000 risultati max in pagination mode
-- 250 risultati per pagina max
-- Scroll mode per risultati illimitati (usa iterationNextToken)
-
-### Link Utili
-- Expert Search Builder: https://ted.europa.eu/en/expert-search
-- API Docs: https://ted.europa.eu/api/documentation/index.html
-- Swagger: https://api.ted.europa.eu/swagger-ui.html
+- 15,000 risultati max, 250 per pagina
+- Expert Search: https://ted.europa.eu/en/expert-search
 
 ---
 
@@ -234,7 +191,7 @@ Write-Host "Salvato in ted_bandi_italia.csv" -ForegroundColor Green
 Aggregatore annunci lavoro. Include Indeed, Monster, CareerBuilder, SimplyHired.
 
 ### Autenticazione
-**Richiesta** - app_id e app_key come query params
+**Richiesta** - app_id e app_key
 
 ### Registrazione
 https://developer.adzuna.com
@@ -244,199 +201,148 @@ https://developer.adzuna.com
 GET https://api.adzuna.com/v1/api/jobs/{country}/search/{page}
 ```
 
-### Paesi Disponibili
+### Paesi
 it, gb, us, de, fr, au, br, ca, in, nl, pl, ru, za
 
 ### Parametri
-
-| Parametro | Tipo | Descrizione |
-|-----------|------|-------------|
-| app_id | string | Il tuo App ID |
-| app_key | string | La tua App Key |
-| what | string | Keywords ricerca |
-| where | string | Location |
-| results_per_page | number | Max 50 |
-| max_days_old | number | Età massima annunci |
-| salary_min | number | Stipendio minimo |
-| salary_max | number | Stipendio massimo |
-| full_time | 1 | Solo full time |
-| permanent | 1 | Solo contratti permanenti |
-
-### Esempi
-
-**Developer Brescia:**
-```powershell
-$appId = "YOUR_APP_ID"
-$appKey = "YOUR_APP_KEY"
-$url = "https://api.adzuna.com/v1/api/jobs/it/search/1?app_id=$appId&app_key=$appKey&what=developer&where=brescia&results_per_page=20"
-
-$results = Invoke-RestMethod -Uri $url
-$results.results | Select-Object title, company, location, salary_min, salary_max
-```
-
-**DevOps Milano stipendio > 50k:**
-```
-https://api.adzuna.com/v1/api/jobs/it/search/1?app_id=XXX&app_key=YYY&what=devops&where=milano&salary_min=50000
-```
-
-### Rate Limits
-Free tier disponibile - vedi dashboard developer
+app_id, app_key, what, where, results_per_page, salary_min, salary_max
 
 ---
 
 ## 4. APIFY ✅ CONFERMATA
 
 ### Descrizione
-Piattaforma scraping con actor pre-costruiti per LinkedIn, Indeed, Glassdoor, Google Trends.
+Piattaforma scraping per LinkedIn, Indeed, Glassdoor, Google Trends.
 
 ### Autenticazione
 **Richiesta** - Bearer token
 
-### Registrazione
-https://apify.com
-
 ### Actor Utili
-
-| Actor | ID | Use Case |
-|-------|-----|----------|
-| Indeed Scraper | misceres/indeed-scraper | Job postings Indeed |
-| LinkedIn Jobs | bebity/linkedin-jobs-scraper | Job postings LinkedIn |
-| Glassdoor | bebity/glassdoor-jobs-scraper | Job + reviews |
-| Google Trends | emastra/google-trends-scraper | Trend ricerche (workaround) |
-
-### Endpoint
-
-**Avviare Actor:**
-```
-POST https://api.apify.com/v2/acts/{actorId}/runs
-Authorization: Bearer YOUR_TOKEN
-Content-Type: application/json
-```
-
-**Ottenere risultati:**
-```
-GET https://api.apify.com/v2/actor-runs/{runId}/dataset/items
-```
-
-### Esempio Indeed Scraper
-```powershell
-$token = "YOUR_APIFY_TOKEN"
-$headers = @{ "Authorization" = "Bearer $token" }
-
-$body = @{
-    queries = @("devops brescia", "kubernetes milano")
-    country = "IT"
-    maxItems = 50
-} | ConvertTo-Json
-
-$run = Invoke-RestMethod -Uri "https://api.apify.com/v2/acts/misceres~indeed-scraper/runs" -Method POST -Headers $headers -ContentType "application/json" -Body $body
-
-# Attendi e ottieni risultati
-Start-Sleep -Seconds 60
-$results = Invoke-RestMethod -Uri "https://api.apify.com/v2/actor-runs/$($run.data.id)/dataset/items" -Headers $headers
-```
+- Indeed: misceres/indeed-scraper
+- LinkedIn Jobs: bebity/linkedin-jobs-scraper
+- Google Trends: emastra/google-trends-scraper
 
 ### Rate Limits
-Free tier: $5 crediti/mese (~1000 risultati scraping)
+Free tier: $5 crediti/mese
 
 ---
 
-## 5. STACK OVERFLOW JOBS ❌ CHIUSO
+## 5. STACK OVERFLOW ❌ JOBS CHIUSO
 
-### ⚠️ ATTENZIONE
-**Stack Overflow ha chiuso la sezione Jobs nel 2022.**
-
-NON esiste più Stack Overflow Jobs API.
-
-### Cosa rimane disponibile
-L'API Stack Exchange per Q&A è ancora attiva (per identificare pain points tecnici):
-
+**Stack Overflow ha chiuso Jobs nel 2022.** API Q&A ancora attiva per pain points:
 ```
 GET https://api.stackexchange.com/2.3/search?intitle=kubernetes+error&site=stackoverflow
 ```
-
-Ma per job listings, usare alternative:
-- **Adzuna** ✅ (già configurata)
-- **Apify** ✅ (già configurata - Indeed, LinkedIn)
-- **RemoteOK** (API gratuita per remote jobs)
-- **We Work Remotely** (RSS feed)
 
 ---
 
 ## 6. ANAC OPEN DATA 📋 DA CONFIGURARE
 
-### Descrizione
-Bandi pubblici italiani sotto soglia EU. Tutti i contratti PA.
-
-### Autenticazione
-**Nessuna**
-
-### Risorse
-
-| Risorsa | URL |
-|---------|-----|
-| Catalogo Dataset | https://dati.anticorruzione.it/opendata/dataset |
-| SPARQL Endpoint | https://dati.anticorruzione.it/sparql |
-
-### Note
-Complementare a TED Europa:
-- TED = bandi sopra €140k
-- ANAC = TUTTI i contratti pubblici italiani
+Bandi PA italiani sotto soglia EU.
+- Catalogo: https://dati.anticorruzione.it/opendata/dataset
+- SPARQL: https://dati.anticorruzione.it/sparql
 
 ---
 
 ## 7. GITHUB API 📋 DA CONFIGURARE
 
-### Descrizione
-Trend tecnologici, repository popolari, progetti emergenti.
-
-### Autenticazione
-Consigliata (5,000 req/ora vs 60 senza token)
-
-### Endpoint
+Trend tech, repository popolari.
 ```
-GET https://api.github.com/search/repositories?q=kubernetes&sort=stars&order=desc
+GET https://api.github.com/search/repositories?q=kubernetes&sort=stars
 ```
-
-### Rate Limits
-- Senza token: 60 req/ora
-- Con token: 5,000 req/ora
+Rate: 60/ora senza token, 5000/ora con token
 
 ---
 
-## 8. REDDIT API ⏳ IN ATTESA APPROVAZIONE
+## 8. REDDIT API ⏳ IN ATTESA
 
-### Descrizione
-Discussioni reali su subreddit tech per pain points e trend.
-
-### Subreddit Target
-- r/devops
-- r/sysadmin
-- r/ItalyInformatica
-- r/programming
-- r/kubernetes
-- r/aws
-
-### Status
-In attesa approvazione (24-48h)
+Subreddit: r/devops, r/sysadmin, r/ItalyInformatica, r/kubernetes, r/aws
 
 ---
 
-## 9. REMOTEOK API 📋 DA CONFIGURARE
+## 9. REMOTEOK API ✅ CONFERMATA
 
 ### Descrizione
-Job board specializzato in lavori remoti. API gratuita.
+Job board lavori remoti. API gratuita.
 
 ### Autenticazione
-**Nessuna**
+**Nessuna** - Richiede User-Agent header
 
 ### Endpoint
 ```
 GET https://remoteok.com/api
+Headers: User-Agent: Mozilla/5.0
 ```
 
-### Note
-Ritorna JSON con tutti i job remoti disponibili. Filtro lato client.
+### ⚠️ Importante
+- Primo elemento array è metadata, jobs da indice 1
+- Filtro lato client
+
+### Request Base
+```powershell
+$jobs = Invoke-RestMethod -Uri "https://remoteok.com/api" -Headers @{"User-Agent"="Mozilla/5.0"}
+# Jobs reali: $jobs[1..($jobs.Count)]
+```
+
+### Campi Response
+position, company, location, salary_min, salary_max, tags, url, date
+
+### Jobs DevOps/Cloud
+```powershell
+$jobs = Invoke-RestMethod -Uri "https://remoteok.com/api" -Headers @{"User-Agent"="Mozilla/5.0"}
+$devopsJobs = $jobs[1..($jobs.Count)] | Where-Object {
+    ($_.tags -join " ") -match "devops|cloud|kubernetes|aws|azure|terraform|docker"
+}
+Write-Host "Totale jobs DevOps/Cloud: $($devopsJobs.Count)" -ForegroundColor Green
+$devopsJobs | Select-Object -First 10 | Format-Table position, company, location -AutoSize
+```
+
+### Analisi Tags
+```powershell
+$jobs = Invoke-RestMethod -Uri "https://remoteok.com/api" -Headers @{"User-Agent"="Mozilla/5.0"}
+$allTags = $jobs[1..($jobs.Count)] | ForEach-Object { $_.tags } | Where-Object { $_ -ne $null }
+$flatTags = $allTags | ForEach-Object { $_ }
+$tagCounts = $flatTags | Group-Object | Sort-Object Count -Descending | Select-Object -First 15
+Write-Host "Top 15 tags:" -ForegroundColor Cyan
+$tagCounts | ForEach-Object { Write-Host "$($_.Name): $($_.Count) jobs" }
+```
+
+### Salary Benchmark
+```powershell
+$jobs = Invoke-RestMethod -Uri "https://remoteok.com/api" -Headers @{"User-Agent"="Mozilla/5.0"}
+$devopsWithSalary = $jobs[1..($jobs.Count)] | Where-Object {
+    ($_.tags -join " " -match "devops|cloud") -and $_.salary_min -gt 0
+}
+$avgSalary = ($devopsWithSalary.salary_min | Measure-Object -Average).Average
+Write-Host "Salary medio MIN: $([Math]::Round($avgSalary))" -ForegroundColor Green
+$devopsWithSalary | Sort-Object salary_min -Descending | Select-Object -First 10 | ForEach-Object {
+    Write-Host "$($_.salary_min)k - $($_.position) @ $($_.company)"
+}
+```
+
+### Export CSV
+```powershell
+$jobs = Invoke-RestMethod -Uri "https://remoteok.com/api" -Headers @{"User-Agent"="Mozilla/5.0"}
+$export = $jobs[1..($jobs.Count)] | ForEach-Object {
+    [PSCustomObject]@{
+        Position = $_.position
+        Company = $_.company
+        Location = $_.location
+        Salary_Min = $_.salary_min
+        Salary_Max = $_.salary_max
+        Tags = ($_.tags -join "; ")
+        URL = $_.url
+        Has_DevOps = if (($_.tags -join " ") -match "devops") { "YES" } else { "NO" }
+        Has_Cloud = if (($_.tags -join " ") -match "cloud") { "YES" } else { "NO" }
+        Is_Senior = if ($_.position -match "senior|lead|principal|architect") { "YES" } else { "NO" }
+    }
+}
+$export | Export-Csv -Path "RemoteOK_ALL_Jobs.csv" -NoTypeInformation -Encoding UTF8
+Start-Process "RemoteOK_ALL_Jobs.csv"
+```
+
+### Tags Rilevanti
+devops, cloud, kubernetes, aws, azure, terraform, docker, python, golang, senior, lead, architect
 
 ---
 
